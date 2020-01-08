@@ -168,7 +168,9 @@ class App extends Component {
 export default App;
 ```
 
-- Component를 만드는 방법은 두 가지가 있는데, 각각 class와 함수를 이용하는 방법임
+- ##### Component를 만드는 방법은 두 가지가 있는데, 각각 class와 함수를 이용하는 방법임
+
+  - ##### 모든 Component에는 render() 함수가 있어야 함
 
 
 
@@ -219,7 +221,7 @@ import React, { Component, Fragment } from 'react';		// Fragment로 불필요한
 
 class App extends Component {
   render() {
-      const name = 'react';				// const : 
+      const name = 'react';				// const : 한번 선언 후 고정값
       return (
       	<div>
               hello {name}!				<!-- { 변수명 } 을 통해 값을 가져옴 -->
@@ -229,5 +231,239 @@ class App extends Component {
 }
 
 export default App;
+```
+
+- #### let과 const의 scope : 블록 단위
+
+  - let : 유동적인 값 (이전의 var)
+  - const : 한번 선언 후 고정적인 값
+
+
+
+- ##### 조건부 렌더링
+
+```react
+import React, { Component, Fragment } from 'react';		// Fragment로 불필요한 div제거 가능
+
+class App extends Component {
+  render() {
+      const name = 'velopert';				// const : 한번 선언 후 고정값
+      const value = 3;
+      return (
+        <Fragment>
+     	 	<div>
+      			{
+                	  1+1 === 2 ?
+                    	'맞다'
+                	  : '틀리다'
+            	 }
+      		</div>
+            <div>
+            	{
+                    name === 'velopert!' && <div>벨로퍼트다!</div>	
+                        				// &&를 이용한 조건부 렌더링
+                } 
+            </div>
+            <div>
+            	{	// 함수 형식을 통해 다중 조건문 사용 가능
+                    // 함수는 (function(){...})로 괄호로 감싸고, 마지막에 ()로 실행
+                    // 화살표함수 (() => {...})() 를 이용하여 쉽게 사용 가능
+                    (function(){
+                        if(value === 1) return <div>1이다!</div>
+                        if(value === 2) return <div>2이다!</div>
+                        if(value === 3) return <div>3이다!</div>
+                        return <div>없다</div>
+                    })()
+                }  
+              
+            </div>
+        </Fragment>
+      );
+  }
+}
+
+export default App;
+```
+
+#### 화살표함수
+
+- ES6 의 문법 중 하나인듯
+
+```react
+(function(){
+	if(value === 1) return <div>1이다!</div>
+    if(value === 2) return <div>2이다!</div>
+    return <div>없다</div>
+})()
+
+위의 함수는
+
+(() => {
+    if(value === 1) return <div>1이다!</div>
+    if(value === 2) return <div>2이다!</div>
+    return <div>없다</div>
+})()
+
+화살표함수로 줄이기 가능
+```
+
+
+
+## JSX를 이용하여 CSS (style, class) 적용하기
+
+- ##### background-color, font-size 와 같이 사용하던 css를 camelcasing 하여 사용함
+
+- ##### class는 className="class명" 형식으로 적용해야 함 (class=이 아님)
+
+```react
+import React, { Component } from 'react'
+import './App.css'
+
+class App extends Component{
+    render(){
+        const styles = {
+            backgroundColor : 'black',
+            padding : '16px',
+            color : 'white',
+            fontSize : 5+10+'px'
+        };
+        return (
+            <div style={styles}>
+                안녕하세요!
+            </div>
+            ---------------------------------
+            <div className="App">
+                안녕하세요!
+            </div>        
+        );
+    }
+}
+
+export default App;
+```
+
+
+
+#### 주석 작성하기
+
+- { /*  ... */ } 와 같이 중괄호로 감싸주어야 함
+- js 태그 안에서 //를 통해 주석을 넣을 수 있음 (단, 주석 뒤는 줄바꿈 해주어야 함)
+
+```react
+render(){
+    // 하이! (js는 주석O)
+    return(
+        <div>
+            {/* 이건 주석이야*/}
+            {/*
+            	멀티라인 주석은
+            	이렇게!
+            */}
+        	<h1 something="dfd" // 여기에 주석 넣을 수 있지
+             >
+                리액트
+            </h1>
+        </div>
+    );
+}
+```
+
+
+
+## 3. props 와 state
+
+- ##### 리액트에서 데이터를 다룰 때 사용
+
+# props ★★
+
+<img src="data:image/png;base64,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">
+
+- 부모 component에서 자식 component로 값을 전달할 때 사용
+
+```react
+ <Child value = "values" />      // 여기서 value가 props
+								 // 부모가 자식에게 넘겨주는 값
+```
+
+##### MyName.js
+
+- props는 this.props.name 으로 받으며, name은 변수
+- props값이 없을 때, defultProps를 설정 가능
+  - 방법 1 static (코드 상단, 최신)
+    - static defaultProps={ name : '기본이름' }
+  - 방법 2 class (코드 하단)
+    - MyName.defaultProps = { name: '기본이름' };
+
+```react
+import React, { Component } from 'react';
+
+class MyName extends Component{
+    
+    static defaultProps={
+        name: '기본이름'		// props가 없을 때는 기본 props값 적용법
+    }
+    render(){
+        return (
+        	<div>
+                안녕하세요! 제 이름은 <b>this.props.name</b>입니다.		
+                {/* props를 넣을 자리 */} 
+            </div>
+        );
+    }
+}
+
+MyName.defaultProps = {
+    name: '기본이름2'			// props가 없을 때 기본 props값 적용법 2
+};
+
+export default MyName;
+```
+
+##### App.js
+
+```react
+import React, { Component } from 'react';
+
+class App extends Component{
+    render(){
+        return (
+        	<Myname name="리액트" />;		// MyName.js를 불러와 props를 적용
+        )
+    }
+}
+
+export default MyName;
+```
+
+##### App.js 결과
+
+```html
+안녕하세요! 제 이름은 리액트입니다.
+```
+
+
+
+### 함수형 Component 작성과 Props
+
+```react
+ import React from 'react';		// 함수형 컴포넌트는 import { component } 안해도 됨
+
+ const MyName = ({ name }) => {		// 비구조화 할당 문법
+    return <div>안녕하세요! 제 이름은 {name} 입니다.</div>
+ };
+
+ MyName.defaultProps = {
+    name: 'velopert'
+ };
+
+ export default MyName;
+```
+
+##### 비구조화 할당 문법
+
+- https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
+
+```
+
 ```
 
