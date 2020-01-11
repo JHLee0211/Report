@@ -559,6 +559,10 @@ export default App;
 
 ## LifeCycle API 소개 및 사용법
 
+```
+https://codesandbox.io/s/xl313zyrkw
+```
+
 - 컴포넌트가 브라우저 상에서 <b>나타날 때, 업데이트 될 때, 사라질 때</b> 중간중간 과정에서 작업할 때 사용
 
 <img src = "https://jistol.github.io/assets/img/frontend/react-lifecycle-methods/1.jpeg">
@@ -571,8 +575,35 @@ export default App;
     -  컴포넌트가 처음 브라우저에 나타날 때 가장 먼저 실행되는 함수
     - state 초기설정, 컴포넌트 전처리 작업 실행
   - getDerivedStateFromProps
-    - props
+    - props로 받은 값을 state로 바로 동기화할 때 이용
+    - Mounting, Updating(New Props) 에서 사용
+  - <b>render</b>
+    - 어떤 dom을 만들게 될지, 내부 tag에 어떤 값을 전달하게 될지를 나타냄
+    - Mounting, Updating 모두에서 사용
+  - componentDidMount
+    - 실제로 브라우저 상에 나타난 후 요청할 것들 / 특정 event listening 기능
+    - 외부 라이브러리 (DC, charttest) 등의 차트 라이브러리 등을 사용할 때 특정 dom에 차트를 그려주세요!
+    - Network / ajax 요청할 때 처리
+    - component가 나타난 후 몇 초 뒤 / component가 나타난 후 스크롤 작업 등
 
 - ##### Updating : Props / State 가 바뀌었을 때
 
+  - New Props / setState() / forceUpdate() 로 구분
+  - getDerivedStateFromProps
+  - <b>shouldComponentUpdate</b>
+    - virtual dom에도 rendering을 할지 말지 결정해주는 함수  
+    - component가 update되는 성능을 최적화시키고 싶을 때 사용
+    - 원래 부모 component가 re-rendering되면, 자식 component도 전부 rendering 하여 차이점을 virtual dom에 반영함 >> 이러한 virtual dom에 반영하는 시간조차 최적화 하기 위해 souldComponentUpdate를 사용함
+    - true / false 값을 반환하여, New props 혹은 setState()로 값이 변경된 경우 shouldComponentUpdate 함수의 로직에 따라 true 를 반환하면 rendering process를 진행하고, false값을 반환하면 실제 rendering이 되지 않기 때문에 화면에도 반영되지 않게 됨
+  - render
+  - getSnapshotBeforeUpdate
+    - rendering후 브라우저에 반영되기 바로 직전 호출되는 함수
+    - 돔의 크기, 스크롤의 위치 등을 사전에 가져오고 싶을 때 사용
+  - componentDidUpdate
+    - 작업을 마치고 component가 업데이트 되었을 때 호출
+    - state가 바꼈다 >> 이전의 상태와 지금의 상태가 페이지가 바꼈다 >> 그럼 어떤 작업을 하겠다! 이런 것을 정의함
+
 - ##### Upmounting : 컴포넌트가 브라우저에서 사라질 때
+
+  - componentWillUnmount
+    - componentDidMount에서 이용한 event listener 를 지움
