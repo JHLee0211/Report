@@ -567,43 +567,250 @@ https://codesandbox.io/s/xl313zyrkw
 
 <img src = "https://jistol.github.io/assets/img/frontend/react-lifecycle-methods/1.jpeg">
 
-##### lifecycle API 종류
+### lifecycle API 종류
 
-- ##### Mounting : 컴포넌트가 브라우저 상에 나타나는 것
+---
+
+- ### Mounting : 컴포넌트가 브라우저 상에 나타나는 것
+
+  ##### App.js
+
+  ```react
+  import React, {Component} from 'react';
+  
+  class App extends Component {
+      /*
+      state={
+          a:1
+      }
+      */
+      constructor(props){					// constructor
+          super(props);
+          console.log('constructor');
+          this.state = {
+              a: '1',
+          }
+      }
+      componentDidMount(){				// componentDidMount()
+          console.log('componentDidMount');
+          console.log(this.myDiv.getBoundingClientRect().height);	// 아래 ref값
+      }
+      render(){
+          return(
+          	<div ref={ref => this.myDiv = ref}>
+              	<h1>안녕하세요 리액트</h1>
+              </div>
+          );
+      }    
+  }
+  
+  export default app;
+  ```
 
   - constructor (생성자 함수)
+
     -  컴포넌트가 처음 브라우저에 나타날 때 가장 먼저 실행되는 함수
-    - state 초기설정, 컴포넌트 전처리 작업 실행
+    - state 초기설정, 컴포넌트 전처리 작업 실행    
+
   - getDerivedStateFromProps
+
+    ```react
+    static getDerivedStateFromProps (nextProps, prevState){
+    	// setState를 하는 것이 아니라 특정 props가 바뀔 때 설정하고 싶은 state 값 리턴
+    	if (nextProps.value !== prevState.value){
+            return { value: nextProps.value };
+        }
+        return null; // null을 리턴하면 따로 업데이트 할 것은 없다라는 의미   
+    }
+    ```
+
     - props로 받은 값을 state로 바로 동기화할 때 이용
     - Mounting, Updating(New Props) 에서 사용
+
   - <b>render</b>
+
     - 어떤 dom을 만들게 될지, 내부 tag에 어떤 값을 전달하게 될지를 나타냄
     - Mounting, Updating 모두에서 사용
-  - componentDidMount
-    - 실제로 브라우저 상에 나타난 후 요청할 것들 / 특정 event listening 기능
-    - 외부 라이브러리 (DC, charttest) 등의 차트 라이브러리 등을 사용할 때 특정 dom에 차트를 그려주세요!
-    - Network / ajax 요청할 때 처리
-    - component가 나타난 후 몇 초 뒤 / component가 나타난 후 스크롤 작업 등
 
-- ##### Updating : Props / State 가 바뀌었을 때
+  - componentDidMount
+
+    - 실제로 브라우저 상에 나타난 후 요청할 것들 / 특정 event listening 기능
+    
+    - 외부 라이브러리 (DC, charttest) 등의 차트 라이브러리 등을 사용할 때 특정 dom에 차트를 그려주세요!
+    
+    - Network / ajax 요청할 때 처리
+    
+    - component가 나타난 후 몇 초 뒤 / component가 나타난 후 스크롤 작업 등
+    
+      
+
+- ### Updating : Props / State 가 바뀌었을 때
+
+  ##### MyComponent.js
+
+  ```react
+  import React, {Component} from 'react';
+  
+  class MyComponent extends Component {
+      state={
+          value:0
+      };
+  
+  	static getDerivedStateFromProps(nextProps, prevState){	// 이 함수는 static
+          						// 받아올 props, 현재 state
+          if(prevState.value !== nextProps.value){	// 받을 값과 현재 값이 다를 때
+              return{
+                  value : nextProps.value				// value값 변경
+              }
+          }
+          return null;
+      }
+  
+      shouldComponentUpdate(nextProps, nextState){   // shouldComponentUpdate 함수
+          if(nextProps.value === 10) return false;   // 특정 조건에 따라 rendering
+          return true;
+      }
+  
+  	componentDidUpdate(prevProps, prevState){		// componentDidUpdate
+          if(this.props.value != prevProps.value){	// Props와 State 비교
+              console.log('value값이 바뀌었다!', this.props.value);
+          }
+      }
+  
+  	componentWillUnmount(){
+          console.log('Good Bye');
+      }
+  
+      render() {
+          return (
+              value : nextProps.value;
+          )
+      }
+  }
+  
+  export default MyComponent;
+  ```
+
+  ##### App.js
+
+  ```react
+  import React, {Component} from 'react';
+  import MyComponent from './MyComponent';
+  
+  class App extends Component {
+      state={
+          counter: 1,
+      }
+  
+      constructor(props){					// constructor
+          super(props);
+          console.log('constructor');
+      }
+      componentDidMount(){				// componentDidMount()
+          console.log('componentDidMount');
+      }
+      handleClick = () =>{
+          this.setState({
+              counter: this.state.counter+1
+          });
+      }
+      render(){
+          return(
+          	<div>
+                  { this.state.counter < 10 && <MyComponent value={this.state.counter} />
+                  <button onClick={this.handleClick}>Click Me</button>
+              </div>
+          );
+      }    
+  }
+  
+  export default app;
+  ```
+
+  
 
   - New Props / setState() / forceUpdate() 로 구분
+
   - getDerivedStateFromProps
+
   - <b>shouldComponentUpdate</b>
-    - virtual dom에도 rendering을 할지 말지 결정해주는 함수  
-    - component가 update되는 성능을 최적화시키고 싶을 때 사용
+    - virtual dom에도 rendering을 할지 말지 결정해주는 함수
+    
+      - ##### 특정 조건에만 update / rendering 해주는 함수
+    
+  - component가 update되는 성능을 최적화시키고 싶을 때 사용
+    
     - 원래 부모 component가 re-rendering되면, 자식 component도 전부 rendering 하여 차이점을 virtual dom에 반영함 >> 이러한 virtual dom에 반영하는 시간조차 최적화 하기 위해 souldComponentUpdate를 사용함
+    
     - true / false 값을 반환하여, New props 혹은 setState()로 값이 변경된 경우 shouldComponentUpdate 함수의 로직에 따라 true 를 반환하면 rendering process를 진행하고, false값을 반환하면 실제 rendering이 되지 않기 때문에 화면에도 반영되지 않게 됨
+    
+    ```react
+    shouldComponentUpdate(nextProps, nextState){
+      // return false 하면 업데이트를 안함
+        // return this.props.checked !== nextProps.checked
+    	return true;    
+    }
+    ```
+    
   - render
+
   - getSnapshotBeforeUpdate
-    - rendering후 브라우저에 반영되기 바로 직전 호출되는 함수
+    
+    ```react
+  getSnapshotBeforeUpdate(prevProps, prevState){
+        // DOM 업데이트가 일어나기 직전의 시점
+        // 새 데이터가 상단에 추가되어도 스크롤바 유지
+        // scrollHeight 는 전 후를 비교하여 스크롤 위치를 설정하기 위함
+        // scrollTop은 크롬에 구현되어 있는데, 이미 구현되었다면 처리하지 않도록 하기위함
+        if(prevState.array !== this.state.array){
+            const {
+                scrollTop, scrollHeight
+            } = this.list;
+            
+            // 여기서 반환하는 값은 componentDidMount 에서 snapshot 값으로 받아올 수 있음
+            return {
+                scrollTop, scrollHeight
+            };
+        }
+    }
+    
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        	// event가 발생하더라도 scroll이 움직이지 않도록
+        if(snapshot) {
+            const { scrollTop }=this.list;
+            if(scrollTop !== snapshot.scrollTop) return;	// 기능이 구현되었다면 처리하지 않음
+            const diff = this.list.scrollHeight - snapshot.scrollHeight;
+            this.list.scrollTop += diff;
+        }
+    }
+    ```
+    
+    - component가 update되어(rendering 후) 브라우저에 반영되기 바로 직전 호출되는 함수
+      - 실행순서 : render() >> getSnapshotBeforeUpdate() >> DOM변화 >> componentDidUpdate
+    - DOM 변화가 일어나기 직전의 DOM 상태를 가져오고, 여기서 리턴하는 값은 componentDidUpdate에서 3번째 파라미터로 받아올 수 있게 됨
     - 돔의 크기, 스크롤의 위치 등을 사전에 가져오고 싶을 때 사용
+    
   - componentDidUpdate
     - 작업을 마치고 component가 업데이트 되었을 때 호출
     - state가 바꼈다 >> 이전의 상태와 지금의 상태가 페이지가 바꼈다 >> 그럼 어떤 작업을 하겠다! 이런 것을 정의함
+    
+  - componentDidCatch
 
-- ##### Upmounting : 컴포넌트가 브라우저에서 사라질 때
+    ```react
+    componentDidCatch(error, info){
+        this.setState({
+            error:true
+        });
+    }
+    ```
+
+    - render함수에서 에러가 발생한다면, 리액트 앱이 크래쉬 되어버림
+    - state.error를 true로 설정하게 함수쪽에서 에러를 띄워주면 됨
+
+    
+
+- ### Upmounting : 컴포넌트가 브라우저에서 사라질 때
 
   - componentWillUnmount
-    - componentDidMount에서 이용한 event listener 를 지움
+    - componentDidMount에서 이용한 event listener 를 지움 
+
