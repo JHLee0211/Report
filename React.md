@@ -757,7 +757,7 @@ https://codesandbox.io/s/xl313zyrkw
   - getSnapshotBeforeUpdate
     
     ```react
-  getSnapshotBeforeUpdate(prevProps, prevState){
+    getSnapshotBeforeUpdate(prevProps, prevState){
         // DOM 업데이트가 일어나기 직전의 시점
         // 새 데이터가 상단에 추가되어도 스크롤바 유지
         // scrollHeight 는 전 후를 비교하여 스크롤 위치를 설정하기 위함
