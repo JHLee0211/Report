@@ -816,7 +816,6 @@ https://codesandbox.io/s/xl313zyrkw
 
 
 
-
 ## 5. 인풋 상태 관리
 
 ```
@@ -848,9 +847,23 @@ class PhoneForm extends Component {
             [e.target.name] : e.target.value
         });
     }
+
+    handleSubmit = (e) => {
+        e.preventDefault();     // 주소창에 값이 들어가는 것을 방지
+        /*
+        this.props.onCreate({
+            name : this.state.name,
+            phone : this.state.phone,
+        });
+        */
+        this.props.onCreate(this.state);
+
+        // 두 onCreate 함수는 같은 역할
+    }
+
     render() {
         return (
-            <form>
+            <form onSubmit = {this.handleSubmit}> 
                 <input
                     name="name"
                     placeholder="이름"
@@ -858,11 +871,12 @@ class PhoneForm extends Component {
                     value={this.state.name}
                 />
                 <input 
-                    name="P hone"
+                    name="phone"
                     placeholder="전화번호" 
                     onChange={this.handleChange}
                     value={this.state.phone}
                 />
+                <button type="submit">등록</button>
                 <div>
                     {this.state.name}
                     {this.state.phone}
@@ -881,12 +895,252 @@ export default PhoneForm;
 
 - ##### 자식 컴포넌트가 부모에게 값 전달하기
 
-- ##### 배열에 데이터 삽입하기
+### 배열에 데이터 삽입하기
+
+---
+
+- react는 불변성을 꼭 유지해야 함!
+  - this.setState() 꼭 사용하기
+  - 내부의 배열이나 객체 수정 시, 기존 배열이나 객체를 수정하지 않고 그것을 기반으로 새로운 객체나 배열을 만들어서 값을 주입해야 함 (concat 함수 등)
+
+##### App.js
+
+```react
+import React, { Component } from 'react';
+import PhoneForm from './components/PhoneForm';
+
+class App extends Component {
+
+  id=0;   // 데이터 추가 시 마다 id값 줄 것
+          // id값은 rendering되는 값이 아니기 때문에 굳이 state에 넣을 필요 없음
+
+  state = {
+    information : [],
+  }
+
+  handleCreate = (data) => {
+    const { information  }= this.state;   // 비구조 할당 문법 사용
+    this.setState({
+      //information : this.state.information.concat(data)
+      information : information.concat({  // 비구조 할당 문법으로 편의성,가독성 증가
+      // name : data.name,
+      // phone : data.phone,    // 방법 1
+      
+      /*
+       information : information.concat(
+         Object.assign({}, data, {id: this.id++}
+        ))
+          // Object.assign함수를 통해 빈 배열({})에 data와 id값을 넣음
+          // 방법 2
+      */
+      ...data,           // 방법 3
+      id: this.id++     // id 추가
+      })
+    });
+  }
+
+  render() {
+    return (
+      <div>
+        <PhoneForm onCreate = {this.handleCreate}/>
+        {JSON.stringify(this.state.information)}
+      </div>
+    );
+  }
+}
+
+export default App;
+
+```
+
+### 배열 렌더링하기
+
+---
+
+```javascript
+const numbers = [1,2,3,4,5];
+const squared = numbers.map(n => n*n);		// numbers를 모두 제곱시켜라
+```
+
+##### 	  위와 같은 map함수를 react에서 구현
+
+##### PhoneInfo.js
+
+```react
+import React, { Component } from 'react';
+
+class PhoneInfo extends Component {
+    render() {
+        const { name, phone, id } = this.props.info;    // 비구조 할당
+        const style={
+            border: '1px solid black',
+            padding: '8px',
+            margin : '8px',
+        };
+
+        return (
+            <div style={style}>
+                <div><b>{name}</b></div>
+                <div>{phone}</div>
+                <div>{id}</div>
+            </div>
+        );
+    }
+}
+
+export default PhoneInfo;
+```
+
+##### PhoneListInfo.js
+
+```react
+import React, { Component } from 'react';
+import PhoneInfo from './PhoneInfo'
+
+class PhoneInfoList extends Component {
+    static defaultProps = {             // data에 props값이 들어오지 않을 때 static으로 default값 정의
+        data: []
+    }
+    render() {
+        const {data} = this.props;      // data에 값을 전달받아 배열로 만들어줌
+        
+        if(!data) return null;          // data에 값이 안들어간다면 null return
+                                    // 위처럼 static defaultProps를 넣어준다면 ㄱㅊ
+
+        const list = data.map(          // data는 map
+            info => (<PhoneInfo info={info} key={info.id}/>)
+            // data 안의 info 값을 넣어주고, 
+            // key는 여러 값을 rendering할 때 고유값을 넣어 최적화
+            // info들의 배열을 가지고 PhoneInfo component로 변환해 준 것
+        );
+        return (
+            <div>
+                {list}      {/* rendering*/}
+            </div>
+        );
+    }
+}
+
+export default PhoneInfoList;
+```
+
+- ##### key가 없다면?
+
+  - 배열 내 값이 생성/삭제될 때 모든 원소가 바뀌며 맞춰감 >> 비효율적
+
+  ```javascript
+  ['a','b','c','d']	['a','b','z','c','d']	
+  <div>a</div>		<div>a</div>
+  <div>b</div>		<div>b</div>
+  <div>c</div>		<div>z</div>	// c가 z로 바뀜
+  <div>d</div>		<div>c</div>	// d가 c로 바뀜
+      				<div>d</div>	// 새로 d 생성		// 3개의 원소가 바뀜
+  ```
+
+- key가 있다면?
+
+  - 생성/삭제되는 값 하나만 바뀜 >> 효율적
+  
+  ```javascript
+  ['a','b','c','d']			['a','b','z','c','d']	
+  <div key={0}>a</div>		<div key={0}>a</div>
+  <div key={1}>b</div>		<div key={1}>b</div>
+  <div key={2}>c</div>		<div key={5}>z</div>	// key가 5인 z 하나만 추가
+  <div key={3}>d</div>		<div key={2}>c</div>
+      						<div key={3}>d</div>	// 1개의 원소가 바뀜
+  ```
+
+##### App.js
+
+```react
+import React, { Component } from 'react';
+import PhoneForm from './components/PhoneForm';
+import PhoneInfoList from './components/PhoneInfoList';
+
+class App extends Component {
+
+  id=0;   // 데이터 추가 시 마다 id값 줄 것
+          // id값은 rendering되는 값이 아니기 때문에 굳이 state에 넣을 필요 없음
+
+  state = {
+    information : [],
+  }
+
+  handleCreate = (data) => {
+    const { information  }= this.state;   // 비구조 할당 문법 사용
+    this.setState({
+      //information : this.state.information.concat(data)
+      information : information.concat({  // 비구조 할당 문법으로 편의성,가독성 증가
+      // name : data.name,
+      // phone : data.phone,    // 방법 1
+      
+      /*
+       information : information.concat(
+         Object.assign({}, data, {id: this.id++}
+        ))
+          // Object.assign함수를 통해 빈 배열({})에 data와 id값을 넣음
+          // 방법 2
+      */
+      ...data,           // 방법 3
+      id: this.id++     // id 추가
+      })
+    });
+  }
+
+  render() {
+    return (
+      <div>
+        <PhoneForm onCreate = {this.handleCreate}/>
+        {JSON.stringify(this.state.information)}
+        <PhoneInfoList />
+      </div>
+    );
+  }
+}
+
+export default App;
+```
 
 
 
+### 배열에서 데이터 수정/제거하기
 
+---
 
-- ##### 배열 렌더링하기
+- ##### 불변성을 유지하며 데이터를 수정/제거해야 함
 
-- 
+  - ##### 제거 : js 내장함수 .slice 또는 .filter 를 이용
+
+  - ##### 수정 : js 내장함수 .slice 또는 .map 이용
+
+  ```javascript
+  const numbers = [1,2,3,4,5];
+  
+  # slice 함수
+  numbers.slice(0,2);				// [1,2]  0번째 칸 포함 2번째 칸 전까지
+  numbers.slice(1,3);				// [2,3]
+  numbers.slice(3,6);				// [4,5]  범위를 넘은 index(6)가 있다면 무시
+  numbers.slice(0,2).concat(number.slice(3,6))
+  								// [1,2,4,5] 원본 배열은 건드리지 않고 3만 제거
+  
+  [								// spread 문법 사용 시
+      ...numbers.slice(0,2),
+      10,
+      ...numbers.slice(3,5)
+  ]								// [1,2,10,4,5]
+  
+  # filter 함수
+  numbers.filter(n => n > 3);		// [4,5]	n이 3보다 큰 경우에만 가져옴
+  numbers.filter(n=> n!== 3);		// [1,2,4,5]	3을 제외한 값만 가져와줘
+  								// 원본 배열은 건드리지 않고 배열 수정 가능
+  
+  # map 함수
+  numbers.map(n => {
+     if(n === 3){
+         return 9;				// n이 3이면 9로 변경
+     }
+      return n;					// 아니면 그대로 return
+  });								// [1,2,9,4,5]
+  ```
+
+  
