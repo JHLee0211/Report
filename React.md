@@ -814,3 +814,79 @@ https://codesandbox.io/s/xl313zyrkw
   - componentWillUnmount
     - componentDidMount에서 이용한 event listener 를 지움 
 
+
+
+
+## 5. 인풋 상태 관리
+
+```
+객체 안에서 사용되는 [e.target.name]: 문법은 속성 계산명 이라는 문법입니다.
+참고링크: https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Operators/Object_initializer
+코드: https://codesandbox.io/s/84j07kxq98
+```
+
+- Reactjs code snippets
+
+  - js 파일에서 rcc 입력 >> class 형태로 만들어진 component 양식 생성
+
+    ​					rcs 입력 >> 함수 형태로 만들어진 component 양식 생성
+
+##### PhoneForm.js
+
+```react
+import React, { Component } from 'react';
+
+class PhoneForm extends Component {
+    state = {
+        name:'',
+        phone:'',
+    }
+
+    handleChange = (e)=>{
+        this.setState({
+            //name: e.target.value
+            [e.target.name] : e.target.value
+        });
+    }
+    render() {
+        return (
+            <form>
+                <input
+                    name="name"
+                    placeholder="이름"
+                    onChange={this.handleChange}
+                    value={this.state.name}
+                />
+                <input 
+                    name="P hone"
+                    placeholder="전화번호" 
+                    onChange={this.handleChange}
+                    value={this.state.phone}
+                />
+                <div>
+                    {this.state.name}
+                    {this.state.phone}
+                </div>
+            </form>
+        );
+    } 
+}
+
+export default PhoneForm;
+```
+
+
+
+## 6. 배열 데이터 렌더링 및 관리
+
+- ##### 자식 컴포넌트가 부모에게 값 전달하기
+
+- ##### 배열에 데이터 삽입하기
+
+
+
+
+
+- ##### 배열 렌더링하기
+
+- 
