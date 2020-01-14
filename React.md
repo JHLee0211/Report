@@ -1121,7 +1121,7 @@ export default App;
   numbers.slice(1,3);				// [2,3]
   numbers.slice(3,6);				// [4,5]  범위를 넘은 index(6)가 있다면 무시
   numbers.slice(0,2).concat(number.slice(3,6))
-  								// [1,2,4,5] 원본 배열은 건드리지 않고 3만 제거
+  // [1,2,4,5] 원본 배열은 건드리지 않고 3만 제거
   
   [								// spread 문법 사용 시
       ...numbers.slice(0,2),
@@ -1132,15 +1132,213 @@ export default App;
   # filter 함수
   numbers.filter(n => n > 3);		// [4,5]	n이 3보다 큰 경우에만 가져옴
   numbers.filter(n=> n!== 3);		// [1,2,4,5]	3을 제외한 값만 가져와줘
-  								// 원본 배열은 건드리지 않고 배열 수정 가능
+  // 원본 배열은 건드리지 않고 배열 수정 가능
   
   # map 함수
   numbers.map(n => {
-     if(n === 3){
-         return 9;				// n이 3이면 9로 변경
-     }
+      if(n === 3){
+          return 9;				// n이 3이면 9로 변경
+      }
       return n;					// 아니면 그대로 return
   });								// [1,2,9,4,5]
   ```
 
-  
+
+
+## 7. 최적화, 활용, Ref
+
+
+
+### souldComponentUpdate를 통한 최적화
+
+---
+
+##### PhoneInfoList.js
+
+```react
+render(){
+    const list = data.map(
+        info => (
+    // <PhoneInfo .../> 는 이미 있던 데이터도 또 render가 발생함(update 시 최적화 해야 함)
+    // PhoneInfo 에서 shouldComponentUpdate 함수로 최적화하여 불필요한 render를 실행하지 않게 함
+            <PhoneInfo
+                onRemove={onRemove} 
+                onUpdate={onUpdate}
+                info={info} 
+                key={info.id}
+                />
+        )
+    );
+    return (
+        <div>
+            {list}      {/* rendering*/}
+        </div>
+    );
+}
+```
+
+##### PhoneInfo.js (shouldComponentUpdate, 최적화 함수)
+
+```react
+shouldComponentUpdate(nextProps, nextState){
+    if(this.state!==nextState){
+        return true;                                
+        // 이전과 다음 상태가 다르다면 true로 render 호출
+    }
+    return this.props.info !== nextProps.info;      
+    // 이전과 다음 상태가 같다면 false 호출하여 render 호출하지 않음        
+}
+```
+
+
+
+### state update 시 불변성 유지 이유
+---
+
+##### 기본적으로 얕은 복사
+
+```
+const array = [0,1,2];
+const anotherArray = array;
+array.push(3);
+
+anotherArray				// [0,1,2,3]	얕은 복사이기 때문에 원본과 같은 객체처럼 동작
+array === anotherArray		// true
+```
+
+##### 불변성을 유지하며 배열 선언
+
+```
+const array = [0,1,2];
+const anotherArray = [...array, 3];
+const anotherArray2 = array.concat(4);
+
+array						// [0,1,2]
+anotherArray				// [0,1,2,3]
+anotherArray2				// [0,1,2,4]
+
+array === anotherArray		// false
+```
+
+##### 불변성을 유지하며 객체 선언
+
+```
+const object = {a : 1, b : 2};
+const anotherObject = {...object, c : 3};
+
+object !== anotherObject;		// true
+anotherObject					// {a : 1, b : 2, c : 3}
+object							// {a : 1, b : 2}
+
+const nestedObject = {			// 객체 안에 객체와 배열 등이 있는 경우 불변성을 유지하기 어려움
+	a : {
+		b : []
+	}
+}
+```
+
+
+
+### 이름으로 전화번호 찾기
+
+---
+
+##### App.js
+
+```react
+state={
+    keyword : '',
+}
+
+render() {
+    return (
+        <div>
+            <PhoneForm onCreate = {this.handleCreate}/>
+            <input
+                value = {this.state.keyword}		// 검색어 값
+                onChange = {this.handleChange}
+                placeholder = "검색..."
+                />
+            {/* <PhoneInfoList />     // 이렇게 렌더링하면 null값 전달*/}
+            <PhoneInfoList 
+                data = {this.state.information.filter(
+                    info => info.name.indexOf(this.state.keyword) > -1		// 검색
+                )}
+                onRemove={this.handleRemove}
+                onUpdate={this.handleUpdate}
+                />
+        </div>
+    );
+}
+```
+
+
+
+### Ref 를 통하여 DOM에 직접 접근하기
+---
+
+##### 1) 함수를 사용하기
+
+```react
+handleSubmit = (e) => {
+    this.input.focus();		// ref를 정의했기 때문에 찾아감
+}
+
+render() {
+    return (
+        <form onSubmit = {this.handleSubmit}> 
+            <input
+                name="name"
+                placeholder="이름"
+                onChange={this.handleChange}
+                value={this.state.name}
+                ref={ref => this.input = ref}		// 함수 이용
+    	    />
+        </form>
+    );
+}
+```
+
+##### 2) createRef() - current (react 16.3 이상)
+
+```react
+class PhoneForm extends Component {
+    //input=null;
+    input = React.createRef()			// createRef() 함수를 초기값으로
+
+	handleSubmit = (e) => {
+    	this.input.current.focus();		// current를 통해 해당 DOM 접근 가능
+	}
+
+	render() {
+        return (
+            <form onSubmit = {this.handleSubmit}> 
+                <input
+                    name="name"
+                    placeholder="이름"
+                    onChange={this.handleChange}
+                    value={this.state.name}
+                    ref={this.input}		// 함수 이용X, this.input만
+                />
+            </form>
+        );
+	}
+}
+```
+
+
+
+### 앞으로 공부해야 할 것
+
+---
+
+- Prettier
+- 리액트 컴포넌트 스타일링
+  - SASS, CSS module, style components 등
+- IMMUTABLE.js library (불변성) + immer.js (매우 간단)
+- Redux
+  - 상태 관리 라이브러리
+- mobx library
+- 리액트 라우터 v4
+- 코드 스플리팅
+- 서버사이드 렌더링
